@@ -1,9 +1,10 @@
 import {createPool} from "mysql2/promise"
+import { DATABASES, HOST, PASSWORD, PORTS, USER } from "../Config.js"
 
 export const pool = createPool({
-    host:"localhost",
-    password:"",
-    user:"root",
-    port:3306,
-    database: "postimages"
+    host:HOST, 
+    password:PASSWORD,
+    user:USER,
+    port:PORTS,
+    database: DATABASES
 })
