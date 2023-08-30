@@ -1,5 +1,5 @@
 {
-  "name": "server",
+  "name": "Y",
   "version": "1.0.0",
   "description": "Backend de el feed  de images tipo post",
   "main": "index.js",
@@ -26,5 +26,6 @@
     "mysql2": "^3.6.0",
     "nodemon": "^3.0.1",
     "uuid": "^9.0.0"
-  }
+  },
+  "repository": "https://github.com/MO01010101/Feed-Post.git"
 }
