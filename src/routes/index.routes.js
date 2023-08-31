@@ -83,9 +83,9 @@ router.get("/getImages", async (req, res) => {
       const respueta = {
         data: result,
       };
-      setTimeout(() => {
+   
         res.json(respueta);
-      }, 1000);
+   
     } catch (error) {
       console.log(error);
     }
