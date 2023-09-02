@@ -38,7 +38,6 @@ export const DeleteFile = async (req,res) =>{
     Key: filename, // required
   })
   fsp.unlink(`public/download/${filename}`)
-  console.log("archivo removido")
  const resposen = await client.send(command)
  res.send("Archivo borrado")
 }

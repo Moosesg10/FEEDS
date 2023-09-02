@@ -3,6 +3,7 @@ import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import { pool } from "../db/db.js";
 import fs from "fs/promises";
+import { error } from "console";
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -26,7 +27,6 @@ const storage = multer.diskStorage({
     }
     if (req.url.includes("/uplodaAvatar")) {
       const nameFile = req.query.nameImag;
-      console.log(nameFile);
       return cb(null, nameFile);
     } else {
       cb(null, uuidv4() + path.extname(file.originalname));
@@ -40,29 +40,37 @@ export const uploadsImage = multer({
 
 export const createPost = async (req, res) => {
   const { title, autor, descripcion, nameImg } = req.body;
+
   const id = uuidv4();
   const date = new Date();
-  const hora = date.toLocaleTimeString();
+  const min = date.getMinutes()
+  const hours = date.getHours()
+  const hora = `${hours}:${min}`
   const dia = date.toDateString();
-  const fecha = `${dia} - ${hora}`;
+  const fecha = dia;
   try {
     const [prevPost] = await pool.query(
       "SELECT * FROM post ORDER BY fecha DESC"
     );
-    if (prevPost.length > 0) {
-      const namefile = prevPost[0].nameImg;
-      if (namefile != undefined) await fs.unlink(`public/uploads/${namefile}`);
-    }
 
+/*     if (prevPost.length > 0) {
+      const namefile = prevPost[0].nameImg;
+ 
+      if (namefile != undefined) await fs.unlink(`public/uploads/${namefile}`); }*/
+     
     const response = await pool.query(
-      "INSERT INTO post (id , title , nameImg , autor, descripcion,fecha) VALUES (? , ? ,? , ? ,? , ?)",
-      [id, title, nameImg, autor, descripcion, fecha]
+      "INSERT INTO post (id , title , nameImg , autor, descripcion,fecha,hora) VALUES (? , ? ,? , ? ,? , ?, ?)",
+      [id, title, nameImg, autor, descripcion, fecha, hora]
     );
+   
+    if(response.affectedRows === 0)throw new Error({message:"No se creo Ningun registro"})
+    
     res.send(response);
+    
   } catch (error) {
     res
       .status(404)
-      .json({ message: `Hubo un error en la peticion ${error.status}` });
+      .json(error);
   }
 };
 
@@ -100,7 +108,7 @@ export const getPost = async (req, res) => {
   }
   try {
     const [data] = await pool.query(
-      `SELECT * FROM post ORDER BY fecha DESC limit ?,?;`,
+      `SELECT * FROM post ORDER BY hora desc limit ?,?;`,
       [inicio, fin]
     );
     const newRespone = { data, numberpag: pag };
@@ -186,12 +194,12 @@ export const updateUser = async (req, res) => {
     const namefile = preview[0].avatar;
     if (namefile != undefined) fs.unlink(`public/avatar/${namefile}`);
 
-    console.log(avatar)
     const response = await pool.query(
       `UPDATE user SET  name = IFNULL( ? ,name) , post_number= IFNULL(? , post_number) , correo= IFNULL(? , correo)  , password= IFNULL(? , password)  , avatar =IFNULL(?,avatar) WHERE  id = ? `,
       [name, post_number, correo, password, avatar, id]
     );
-    const [respo] = await pool.query("SELECT * FROM user WHERE id = ?", [id]);
+  console.log(response)
+     const [respo] = await pool.query("SELECT * FROM user WHERE id = ?", [id]);
     res.json(respo);
   } catch (error) {
     console.log(error);
@@ -203,10 +211,10 @@ export const updatePost = async (req, res) => {
   const id = req.params.id;
 
   try {
-/*     const [preview] = await pool.query("SELECT * FROM post WHERE id = ?", [id]);
+const [preview] = await pool.query("SELECT * FROM post WHERE id = ?", [id]);
     const namefile = preview[0].nameImg;
-    console.log(preview[0].nameImg); */
-/*     if (namefile != undefined) fs.unlink(`public/uploads/${namefile}`); */
+    console.log(preview[0].nameImg); 
+   if (namefile != undefined) fs.unlink(`public/uploads/${namefile}`);
     const [response] = await pool.query(
       "UPDATE post SET  title = IFNULL( ? ,title) , nameImg= IFNULL(? , nameImg) , descripcion= IFNULL(? , descripcion)   WHERE  id = ? ",
       [title, nameImg, descripcion, id]
@@ -220,6 +228,7 @@ export const updatePost = async (req, res) => {
 
 export const deletePreview = async (req, res) => {
   const namefile = req.params.name;
+
   await fs.unlink(`public/preview/${namefile}`);
   res.send("hecho");
 };

@@ -74,8 +74,9 @@ router.get("/delete-preview/:name", deletePreview);
 router.get("/getImages", async (req, res) => {
   const inicio = parseInt(req.query.inicio);
   const limit = 8;
+ try {
   const [row] = await pool.query(
-    `SELECT * FROM post ORDER BY fecha DESC limit ?,?;`,
+    `SELECT * FROM post ORDER BY hora DESC , fecha ASC limit ?,?;`,
     [inicio, limit]
   );
   GetFile(row).then(async (result) => {
@@ -90,6 +91,9 @@ router.get("/getImages", async (req, res) => {
       console.log(error);
     }
   });
+ } catch (error) {
+  res.send(error)
+ }
 });
 
 //Router Delete
